@@ -1,0 +1,44 @@
+---
+- hosts: all
+  become: no
+  become_method: sudo
+
+  tasks:
+    - name: Install python3-apt and apache2
+      become: yes
+      package:
+        name:
+          - python3-apt
+          - apache2
+        state: present
+
+    - name: Copy apache.conf to sites-available
+      become: yes
+      copy:
+        src: files/config/apache.conf
+        dest: /etc/apache2/sites-available/apache.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Copy index.html to web root
+      become: yes
+      copy:
+        src: files/site/index.html
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Enable apache.conf via symlink
+      become: yes
+      file:
+        src: /etc/apache2/sites-available/apache.conf
+        dest: /etc/apache2/sites-enabled/apache.conf
+        state: link
+
+    - name: Restart apache2
+      become: yes
+      service:
+        name: apache2
+        state: restarted
